@@ -1,7 +1,9 @@
 <?php
 require_once 'includes/auth.php';
+require_once 'includes/school_branding.php';
 
 $auth = new Auth();
+$branding = new SchoolBranding();
 
 // Redirect if already logged in
 if($auth->isLoggedIn()) {
@@ -129,10 +131,10 @@ if($_POST) {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="school-logo">
-                            <i class="fas fa-graduation-cap"></i>
+                            <?php echo $branding->renderSchoolLogo('60px', '60px', 'img-fluid'); ?>
                         </div>
-                        <h3>Magodi Private School</h3>
-                        <p class="mb-0">Area 23, Lilongwe, Malawi</p>
+                        <h3><?php echo $branding->getSchoolName(); ?></h3>
+                        <p class="mb-0"><?php echo $branding->getSchoolAddress(); ?></p>
                     </div>
                     <div class="login-body">
                         <?php if($error): ?>

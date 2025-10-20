@@ -27,7 +27,11 @@ if($_POST) {
         
         if($stmt->rowCount() > 0) {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(password_verify($login_password, $row['Password'])) {
+            
+            // Check if account is active
+            if($row['Is_Active'] != 1) {
+                $error = 'Your account has been deactivated. Please contact administrator.';
+            } else if(password_verify($login_password, $row['Password'])) {
                 $_SESSION['user_id'] = $row['User_ID'];
                 $_SESSION['username'] = $row['Username'];
                 $_SESSION['role'] = $row['Role_Name'];
@@ -52,10 +56,10 @@ if($_POST) {
                 }
                 exit();
             } else {
-                $error = 'Invalid password';
+                $error = 'Invalid password. Password is case-sensitive.';
             }
         } else {
-            $error = 'Invalid username';
+            $error = 'Username not found. Please check your username and try again.';
         }
     } catch(Exception $e) {
         $error = 'Database connection failed: ' . $e->getMessage();
@@ -152,14 +156,14 @@ if($_POST) {
                                 <label for="username" class="form-label">
                                     <i class="fas fa-user me-2"></i>Username
                                 </label>
-                                <input type="text" class="form-control" id="username" name="username" value="admin" required>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
                             </div>
                             
                             <div class="mb-4">
                                 <label for="password" class="form-label">
                                     <i class="fas fa-lock me-2"></i>Password
                                 </label>
-                                <input type="password" class="form-control" id="password" name="password" value="admin123" required>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
                             </div>
                             
                             <button type="submit" class="btn btn-primary btn-login w-100">
@@ -175,9 +179,14 @@ if($_POST) {
                         </div>
                         
                         <div class="text-center mt-3">
-                            <a href="quick_setup.php" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-cog me-1"></i>Setup System
-                            </a>
+                            <div class="d-grid gap-2">
+                                <a href="diagnose_login.php" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-stethoscope me-1"></i>Login Not Working? Diagnose Issue
+                                </a>
+                                <a href="quick_setup.php" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-cog me-1"></i>Setup System
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

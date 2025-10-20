@@ -55,23 +55,37 @@ echo "<h4><i class='fas fa-chalkboard-teacher me-2'></i>Teacher Accounts</h4>";
 echo "</div>";
 echo "<div class='p-4'>";
 
-$teachers = [
-    ['john.mwale', 'teacher123', 'John Mwale', 'Head Teacher'],
-    ['mary.chisale', 'teacher123', 'Mary Chisale', 'Teacher'],
-    ['peter.banda', 'teacher123', 'Peter Banda', 'Teacher'],
-    ['grace.mkandawire', 'teacher123', 'Grace Mkandawire', 'Teacher'],
-    ['james.phiri', 'teacher123', 'James Phiri', 'Teacher']
-];
-
-foreach($teachers as $teacher) {
-    echo "<div class='credential-item'>";
-    echo "<div class='row align-items-center'>";
-    echo "<div class='col-md-3'><span class='username'>" . $teacher[0] . "</span></div>";
-    echo "<div class='col-md-3'><span class='password'>" . $teacher[1] . "</span></div>";
-    echo "<div class='col-md-3'><span class='role-badge bg-success text-white'>Teacher</span></div>";
-    echo "<div class='col-md-3'><small class='text-muted'>" . $teacher[2] . " - " . $teacher[3] . "</small></div>";
-    echo "</div>";
-    echo "</div>";
+// Fetch actual teacher credentials from database
+require_once 'config/database.php';
+try {
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $query = "SELECT t.*, tc.Username, tc.Original_Password 
+              FROM teacher t 
+              LEFT JOIN teacher_credentials tc ON t.Teacher_ID = tc.Teacher_ID 
+              WHERE t.Is_Active = 1 
+              ORDER BY t.First_Name, t.Last_Name";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if(empty($teachers)) {
+        echo "<div class='text-center text-muted py-3'>No teacher credentials found.</div>";
+    } else {
+        foreach($teachers as $teacher) {
+            echo "<div class='credential-item'>";
+            echo "<div class='row align-items-center'>";
+            echo "<div class='col-md-3'><span class='username'>" . htmlspecialchars($teacher['Username'] ?? 'N/A') . "</span></div>";
+            echo "<div class='col-md-3'><span class='password'>" . htmlspecialchars($teacher['Original_Password'] ?? 'N/A') . "</span></div>";
+            echo "<div class='col-md-3'><span class='role-badge bg-success text-white'>Teacher</span></div>";
+            echo "<div class='col-md-3'><small class='text-muted'>" . htmlspecialchars($teacher['First_Name'] . ' ' . $teacher['Last_Name']) . " - " . htmlspecialchars($teacher['Position']) . "</small></div>";
+            echo "</div>";
+            echo "</div>";
+        }
+    }
+} catch(Exception $e) {
+    echo "<div class='text-center text-danger py-3'>Error loading teacher credentials: " . htmlspecialchars($e->getMessage()) . "</div>";
 }
 echo "</div>";
 echo "</div>";
@@ -83,23 +97,36 @@ echo "<h4><i class='fas fa-user-graduate me-2'></i>Student Accounts</h4>";
 echo "</div>";
 echo "<div class='p-4'>";
 
-$students = [
-    ['chisomo.mwale', 'student123', 'Chisomo Mwale', 'ST001', 'Form 1A'],
-    ['tiyamike.chisale', 'student123', 'Tiyamike Chisale', 'ST002', 'Form 1A'],
-    ['kondwani.banda', 'student123', 'Kondwani Banda', 'ST003', 'Form 1B'],
-    ['thandiwe.phiri', 'student123', 'Thandiwe Phiri', 'ST004', 'Form 1B'],
-    ['blessings.mkandawire', 'student123', 'Blessings Mkandawire', 'ST005', 'Form 2A']
-];
-
-foreach($students as $student) {
-    echo "<div class='credential-item'>";
-    echo "<div class='row align-items-center'>";
-    echo "<div class='col-md-3'><span class='username'>" . $student[0] . "</span></div>";
-    echo "<div class='col-md-3'><span class='password'>" . $student[1] . "</span></div>";
-    echo "<div class='col-md-3'><span class='role-badge bg-primary text-white'>Student</span></div>";
-    echo "<div class='col-md-3'><small class='text-muted'>" . $student[2] . " (" . $student[3] . ") - " . $student[4] . "</small></div>";
-    echo "</div>";
-    echo "</div>";
+// Fetch actual student credentials from database
+try {
+    $query = "SELECT s.*, u.Username, c.Class_Name, sc.Original_Password
+              FROM student s 
+              LEFT JOIN user u ON s.Student_ID = u.Related_ID 
+              LEFT JOIN class c ON s.Class_ID = c.Class_ID 
+              LEFT JOIN student_credentials sc ON s.Student_ID = sc.Student_ID
+              WHERE s.Is_Active = 1 
+              ORDER BY s.First_Name, s.Last_Name";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if(empty($students)) {
+        echo "<div class='text-center text-muted py-3'>No student credentials found.</div>";
+    } else {
+        foreach($students as $student) {
+            $password = $student['Original_Password'] ?? 'N/A - Run fix_student_credentials.php';
+            echo "<div class='credential-item'>";
+            echo "<div class='row align-items-center'>";
+            echo "<div class='col-md-3'><span class='username'>" . htmlspecialchars($student['Username'] ?? 'N/A') . "</span></div>";
+            echo "<div class='col-md-3'><span class='password'>" . htmlspecialchars($password) . "</span></div>";
+            echo "<div class='col-md-3'><span class='role-badge bg-primary text-white'>Student</span></div>";
+            echo "<div class='col-md-3'><small class='text-muted'>" . htmlspecialchars($student['First_Name'] . ' ' . $student['Last_Name']) . " (" . htmlspecialchars($student['Student_Number']) . ") - " . htmlspecialchars($student['Class_Name'] ?? 'No Class') . "</small></div>";
+            echo "</div>";
+            echo "</div>";
+        }
+    }
+} catch(Exception $e) {
+    echo "<div class='text-center text-danger py-3'>Error loading student credentials: " . htmlspecialchars($e->getMessage()) . "</div>";
 }
 echo "</div>";
 echo "</div>";

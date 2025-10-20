@@ -4,6 +4,8 @@ require_once 'includes/school_branding.php';
 
 $auth = new Auth();
 $isLoggedIn = $auth->isLoggedIn();
+$user_info = $isLoggedIn ? $auth->getUserInfo() : null;
+$user_role = $user_info['Role_Name'] ?? null;
 $branding = new SchoolBranding();
 ?>
 <!DOCTYPE html>
@@ -93,7 +95,7 @@ $branding = new SchoolBranding();
     <section class="hero-section">
         <div class="container text-center">
             <div class="school-logo">
-                <i class="fas fa-graduation-cap"></i>
+                <?php echo $branding->renderSchoolLogo('100px', '100px', 'img-fluid'); ?>
             </div>
             <h1 class="display-4 fw-bold mb-4"><?php echo $branding->getSchoolName(); ?></h1>
             <p class="lead mb-4"><?php echo $branding->getSchoolMotto(); ?></p>
@@ -182,72 +184,139 @@ $branding = new SchoolBranding();
     </section>
 
     <!-- Portal Access Section -->
-    <?php if($isLoggedIn): ?>
     <section class="py-5 bg-light">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-12">
                     <h2 class="display-5 fw-bold">Access Your Portal</h2>
-                    <p class="lead text-muted">Choose your role to access the appropriate dashboard</p>
+                    <?php if($isLoggedIn): ?>
+                        <p class="lead text-muted">Welcome back, <?php echo htmlspecialchars($user_info['First_Name'] ?? 'User'); ?>!</p>
+                        <p class="text-muted">Access your <?php echo htmlspecialchars($user_role); ?> dashboard below</p>
+                        <div class="mt-3">
+                            <a href="logout.php" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <p class="lead text-muted">Choose your role to access the appropriate dashboard</p>
+                        <p class="text-muted">Please log in first to access your portal</p>
+                    <?php endif; ?>
                 </div>
             </div>
             
-            <div class="row g-4">
-                <div class="col-md-3">
-                    <div class="card portal-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="portal-icon admin-icon text-white">
-                                <i class="fas fa-crown"></i>
+            <div class="row g-4 justify-content-center">
+                <?php if($isLoggedIn): ?>
+                    <!-- Show only the relevant portal for logged-in users -->
+                    <?php if($user_role === 'Admin'): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card portal-card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="portal-icon admin-icon text-white">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <h5 class="card-title">Admin Portal</h5>
+                                    <p class="card-text">Complete system administration and management.</p>
+                                    <a href="admin/dashboard.php" class="btn btn-primary btn-lg">Access Admin Dashboard</a>
+                                </div>
                             </div>
-                            <h5 class="card-title">Admin Portal</h5>
-                            <p class="card-text">Complete system administration and management.</p>
-                            <a href="admin/dashboard.php" class="btn btn-outline-primary">Access</a>
+                        </div>
+                    <?php elseif($user_role === 'Teacher'): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card portal-card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="portal-icon teacher-icon text-white">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <h5 class="card-title">Staff Portal</h5>
+                                    <p class="card-text">Teaching staff dashboard and tools.</p>
+                                    <a href="staff/dashboard.php" class="btn btn-success btn-lg">Access Staff Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php elseif($user_role === 'Student'): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card portal-card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="portal-icon student-icon text-white">
+                                        <i class="fas fa-user-graduate"></i>
+                                    </div>
+                                    <h5 class="card-title">Student Portal</h5>
+                                    <p class="card-text">Student dashboard and academic information.</p>
+                                    <a href="student/dashboard.php" class="btn btn-info btn-lg">Access Student Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php elseif($user_role === 'Parent'): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card portal-card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="portal-icon parent-icon text-white">
+                                        <i class="fas fa-user-friends"></i>
+                                    </div>
+                                    <h5 class="card-title">Parent Portal</h5>
+                                    <p class="card-text">Parent access to student information.</p>
+                                    <a href="parent/dashboard.php" class="btn btn-warning btn-lg">Access Parent Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <!-- Show all portals for non-logged-in users -->
+                    <div class="col-md-3">
+                        <div class="card portal-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="portal-icon admin-icon text-white">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <h5 class="card-title">Admin Portal</h5>
+                                <p class="card-text">Complete system administration and management.</p>
+                                <a href="login.php" class="btn btn-outline-primary">Access</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="col-md-3">
-                    <div class="card portal-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="portal-icon teacher-icon text-white">
-                                <i class="fas fa-chalkboard-teacher"></i>
+                    
+                    <div class="col-md-3">
+                        <div class="card portal-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="portal-icon teacher-icon text-white">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <h5 class="card-title">Staff Portal</h5>
+                                <p class="card-text">Teaching staff dashboard and tools.</p>
+                                <a href="login.php" class="btn btn-outline-success">Access</a>
                             </div>
-                            <h5 class="card-title">Staff Portal</h5>
-                            <p class="card-text">Teaching staff dashboard and tools.</p>
-                            <a href="staff/dashboard.php" class="btn btn-outline-success">Access</a>
                         </div>
                     </div>
-                </div>
-                
-                <div class="col-md-3">
-                    <div class="card portal-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="portal-icon student-icon text-white">
-                                <i class="fas fa-user-graduate"></i>
+                    
+                    <div class="col-md-3">
+                        <div class="card portal-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="portal-icon student-icon text-white">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <h5 class="card-title">Student Portal</h5>
+                                <p class="card-text">Student dashboard and academic information.</p>
+                                <a href="login.php" class="btn btn-outline-info">Access</a>
                             </div>
-                            <h5 class="card-title">Student Portal</h5>
-                            <p class="card-text">Student dashboard and academic information.</p>
-                            <a href="student/dashboard.php" class="btn btn-outline-info">Access</a>
                         </div>
                     </div>
-                </div>
-                
-                <div class="col-md-3">
-                    <div class="card portal-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="portal-icon parent-icon text-white">
-                                <i class="fas fa-user-friends"></i>
+                    
+                    <div class="col-md-3">
+                        <div class="card portal-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="portal-icon parent-icon text-white">
+                                    <i class="fas fa-user-friends"></i>
+                                </div>
+                                <h5 class="card-title">Parent Portal</h5>
+                                <p class="card-text">Parent access to student information.</p>
+                                <a href="login.php" class="btn btn-outline-warning">Access</a>
                             </div>
-                            <h5 class="card-title">Parent Portal</h5>
-                            <p class="card-text">Parent access to student information.</p>
-                            <a href="parent/dashboard.php" class="btn btn-outline-warning">Access</a>
                         </div>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
-    <?php endif; ?>
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
